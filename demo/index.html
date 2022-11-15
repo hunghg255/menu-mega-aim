@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>menu-aim</title>
+  <meta charset="utf-8">
+  <style>
+    body,
+    html,
+    ul,
+    li {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: sans-serif;
+    }
+
+    li {
+      list-style: none;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    .menu-aim {
+      max-width: 200px;
+      position: relative;
+    }
+
+    .menu-aim__item {
+      background-color: gray;
+    }
+
+    .menu-aim a {
+      display: block;
+      color: blue;
+    }
+
+    .menu-aim__item:hover {
+      color: white;
+      background-color: rgba(0, 0, 255, 0.473);
+    }
+
+    .menu-aim__item--active {
+      background-color: blue !important;
+    }
+
+    .menu-aim__item--active>a {
+      color: white !important;
+
+    }
+
+    .menu-aim__item-submenu {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 100%;
+      height: 200px;
+      background-color: antiquewhite;
+    }
+
+    .menu-aim__item--active .menu-aim__item-submenu {
+      display: block;
+    }
+
+  </style>
+</head>
+
+<body>
+  <ul class="menu-aim">
+    <li class="menu-aim__item">
+      <a class="menu-aim__item-name" href="#">foo</a>
+      <ul class="menu-aim__item-submenu">
+        <li><a href="#">fooo</a></li>
+        <li><a href="#">foooo</a></li>
+        <li><a href="#">fooooo</a></li>
+        <li><a href="#">foooooo</a></li>
+        <li><a href="#">fooooooo</a></li>
+        <li><a href="#">foooooooo</a></li>
+      </ul>
+    </li>
+    <li class="menu-aim__item">
+      <a class="menu-aim__item-name" href="#">bar</a>
+      <ul class="menu-aim__item-submenu">
+        <li><a href="#">baar</a></li>
+        <li><a href="#">baaar</a></li>
+        <li><a href="#">baaaar</a></li>
+        <li><a href="#">baaaaar</a></li>
+        <li><a href="#">baaaaaar</a></li>
+        <li><a href="#">baaaaaaar</a></li>
+      </ul>
+    </li>
+    <li class="menu-aim__item">
+      <a class="menu-aim__item-name" href="#">baz</a>
+      <ul class="menu-aim__item-submenu">
+        <li><a href="#">baaz</a></li>
+        <li><a href="#">baaaz</a></li>
+        <li><a href="#">baaaaz</a></li>
+        <li><a href="#">baaaaaz</a></li>
+        <li><a href="#">baaaaaaz</a></li>
+        <li><a href="#">baaaaaaaz</a></li>
+        <li><a href="#">baaaaaaaaz</a></li>
+      </ul>
+    </li>
+  </ul>
+  <script type="text/javascript" src="../dist/menuAin.js"></script>
+  <script type="text/javascript">
+    MenuAim({
+      classMenu: '.menu-aim',
+      classMenuItem: '.menu-aim__item',
+      classMenuItemActive: 'menu-aim__item--active',
+      classPopup: '.menu-aim__item-submenu',
+    });
+  </script>
+</body>
+
+</html>
