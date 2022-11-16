@@ -8,10 +8,10 @@ module.exports = {
   entry: './src/main.js',
   output: {
     library: 'MenuAim',
-    libraryTarget: 'var',
+    libraryTarget: 'umd',
     libraryExport: 'default',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'menuAin.js',
+    filename: 'index.js',
   },
   module: {
     rules: [
