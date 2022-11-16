@@ -28,6 +28,7 @@
     .menu-aim {
       max-width: 200px;
       position: relative;
+      height: 200px;
     }
 
     .menu-aim__item {
@@ -107,14 +108,18 @@
       </ul>
     </li>
   </ul>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/hunghg255/menu-mega-aim/dist/index.js"></script>
+  <script type="text/javascript" src="../dist/index.js"></script>
   <script type="text/javascript">
     MenuAim({
-      classMenu: '.menu-aim',
-      classMenuItem: '.menu-aim__item',
-      classMenuItemActive: 'menu-aim__item--active',
-      classPopup: '.menu-aim__item-submenu',
-    });
+        submenuDirection: 'right',
+        menuSelector: '.menu-aim',
+        delay: 350,
+        tolerance: 30,
+        classItem: '.menu-aim__item',
+        classItemActive: 'menu-aim__item--active',
+        classPopup: '.menu-aim__item-submenu',
+        classPopupActive: 'menu-aim__item-submenu--active',
+      });
   </script>
 </body>
 

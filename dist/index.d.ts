@@ -1,7 +1,10 @@
 export default function MenuAim(options: {
-  delay?: number;
-  classMenu: string;
-  classMenuItem: string;
-  classMenuItemActive: string;
+  menuSelector: string;
+  classItem: string;
+  classItemActive: string;
   classPopup: string;
+  classPopupActive: string;
+  delay?: number;
+  submenuDirection?: 'top' | 'left' | 'bottom' | 'right';
+  tolerance?: number;
 }): void;

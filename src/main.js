@@ -1,164 +1,254 @@
-const MenuAim = (options) => {
-  try {
-    if (typeof window !== 'undefined') {
-      function calculateGradient(A, B) {
-        return (B.y - A.y) / (B.x - A.x);
-      }
-      function calculateTopLeftAndBottomRightCoordinates(element) {
-        var rect = element.getBoundingClientRect();
-        var topX =
-          rect.left +
-          (window.pageXOffset || document.documentElement.scrollLeft);
-        var topY =
-          rect.top + (window.pageYOffset || document.documentElement.scrollTop);
-        return {
-          x: [topX, topX + element.offsetWidth],
-          y: [topY, topY + element.offsetHeight],
-        };
-      }
+const MOUSE_LOCS_TRACKED = 3; // number of past mouse locations to trackv
+const DELAY = 300; // ms delay when user appears to be entering submenu
+const TOLERANCE = 75; // bigger = more forgivey when entering submenu
+const mouseLocs = [];
+let timerId;
+let lastDelayLoc;
+let rowActive;
 
-      if (
-        !options?.classMenu ||
-        !options?.classMenuItem ||
-        !options?.classPopup
-      )
-        return;
+/**
+ *
+ * DOM helpers
+ *
+ */
+function on(el, eventName, callback) {
+  if (el.addEventListener) {
+    el.addEventListener(eventName, callback, false);
+  } else if (el.attachEvent) {
+    el.attachEvent('on' + eventName, function (e) {
+      callback.call(el, e || window.event);
+    });
+  }
+}
 
-      const menuElement = document.querySelector(options?.classMenu);
-      const menuChilds = menuElement.querySelectorAll(options?.classMenuItem);
+function off(el, eventName, callback) {
+  if (el.removeEventListener) {
+    el.removeEventListener(eventName, callback);
+  } else if (el.detachEvent) {
+    el.detachEvent('on' + eventName, callback);
+  }
+}
 
-      var previousMouseCoordinates = {};
-      var currentMouseCoordinates = {};
-      var timeoutId;
-      var activeMenuItem;
-      var activeSubMenuTopLeftCoordinates;
-      var activeSubMenuBottomLeftCoordinates;
-      var extremeCoordinates;
+function offset(el) {
+  if (!el) {
+    return {
+      left: 0,
+      top: 0,
+    };
+  }
 
-      var menuElementCoordinates =
-        calculateTopLeftAndBottomRightCoordinates(menuElement);
+  const rect = el.getBoundingClientRect();
+  return {
+    top: rect.top + document.body.scrollTop,
+    left: rect.left + document.body.scrollLeft,
+  };
+}
 
-      function saveMouseCoordinates(x, y) {
-        previousMouseCoordinates.x = currentMouseCoordinates.x;
-        previousMouseCoordinates.y = currentMouseCoordinates.y;
-        currentMouseCoordinates.x = x;
-        currentMouseCoordinates.y = y;
-      }
+function outerWidth(el) {
+  let _width = el.offsetWidth;
+  const style = el.currentStyle || getComputedStyle(el);
 
-      // Return `true` if there currently isn't an active menu item, or if
-      // `currentMouseCoordinates` is outside of the triangle drawn between
-      // `previousMouseCoordinates`, `activeSubMenuTopLeftCoordinates` and
-      // `activeSubMenuBottomLeftCoordinates`.
-      function shouldChangeActiveMenuItem() {
-        return (
-          !activeMenuItem ||
-          calculateGradient(
-            previousMouseCoordinates,
-            activeSubMenuTopLeftCoordinates
-          ) <
-            calculateGradient(
-              currentMouseCoordinates,
-              activeSubMenuTopLeftCoordinates
-            ) ||
-          calculateGradient(
-            previousMouseCoordinates,
-            activeSubMenuBottomLeftCoordinates
-          ) >
-            calculateGradient(
-              currentMouseCoordinates,
-              activeSubMenuBottomLeftCoordinates
-            )
-        );
-      }
+  _width += parseInt(style.marginLeft, 10) || 0;
+  return _width;
+}
 
-      // Possibly activates the given `menuItem`. If so, returns true.
-      function possiblyActivateMenuItem(menuItem) {
-        cancelPendingMenuItemActivations();
-        if (shouldChangeActiveMenuItem()) {
-          deactivateActiveMenuItem();
-          activateMenuItem(menuItem);
-          return true;
-        }
-      }
+function outerHeight(el) {
+  let _height = el.offsetHeight;
+  const style = el.currentStyle || getComputedStyle(el);
 
-      function activateMenuItem(menuItem) {
-        activeMenuItem = menuItem;
-        activeMenuItem.classList.add(options?.classMenuItemActive);
-        var activeSubMenu = activeMenuItem.querySelector(options?.classPopup);
+  _height += parseInt(style.marginLeft, 10) || 0;
+  return _height;
+}
 
-        var activeSubMenuCoordinates =
-          calculateTopLeftAndBottomRightCoordinates(activeSubMenu);
-        activeSubMenuTopLeftCoordinates = {
-          x: activeSubMenuCoordinates.x[0],
-          y: activeSubMenuCoordinates.y[0],
-        };
-        activeSubMenuBottomLeftCoordinates = {
-          x: activeSubMenuCoordinates.x[0],
-          y: activeSubMenuCoordinates.y[1],
-        };
-        // `extremeCoordinates` corresponds to the top-left coordinates (Ax, Ay) and
-        // bottom-right coordinates (Bx, By) of the entire menu, encompassing both the
-        // `menuElement` and `activeSubMenu`.
-        extremeCoordinates = {
-          x: [
-            menuElementCoordinates.x[0],
-            activeSubMenuTopLeftCoordinates.x + activeSubMenu.offsetWidth,
-          ],
-          y: [
-            menuElementCoordinates.y[0],
-            activeSubMenuTopLeftCoordinates.y + activeSubMenu.offsetHeight,
-          ],
-        };
-      }
+/**
+ *
+ * Util helpers
+ *
+ */
 
-      function possiblyDeactivateActiveMenuItem() {
-        if (
-          currentMouseCoordinates.x < extremeCoordinates.x[0] ||
-          currentMouseCoordinates.x > extremeCoordinates.x[1] ||
-          currentMouseCoordinates.y < extremeCoordinates.y[0] ||
-          currentMouseCoordinates.y > extremeCoordinates.y[1]
-        ) {
-          cancelPendingMenuItemActivations();
-          deactivateActiveMenuItem();
-        }
-      }
+// Mousemove handler on document
+function handleMouseMoveDocument(e) {
+  mouseLocs.push({
+    x: e.pageX,
+    y: e.pageY,
+  });
 
-      function deactivateActiveMenuItem() {
-        if (activeMenuItem) {
-          activeMenuItem.classList.remove(options?.classMenuItemActive);
-          activeMenuItem = null;
-        }
-      }
+  if (mouseLocs.length > MOUSE_LOCS_TRACKED) {
+    mouseLocs.shift();
+  }
+}
 
-      function cancelPendingMenuItemActivations() {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-      }
+function getActivateDelay(config) {
+  if (
+    !rowActive ||
+    !rowActive?.evt?.target?.querySelector(config?.classPopup)
+  ) {
+    // If there is no other submenu row already active, then
+    // go ahead and activate immediately.
+    return 0;
+  }
 
-      const onMouseEnterToMenuItem = (event) => {
-        var menuItem = event.target;
-        if (!possiblyActivateMenuItem(menuItem)) {
-          timeoutId = setTimeout(function () {
-            possiblyActivateMenuItem(menuItem);
-          }, options?.delay || 300);
-        }
-      };
+  config = config || {};
+  let menuSelector = document.querySelector(config.menuSelector);
 
-      function handleMouseMoveDocument(e) {
-        saveMouseCoordinates(e.pageX, e.pageY);
-        if (activeMenuItem) {
-          possiblyDeactivateActiveMenuItem();
-        }
-      }
+  // If can't find any DOM node
+  if (!menuSelector || !menuSelector.querySelector) {
+    return 0;
+  }
 
-      menuChilds.forEach((element) => {
-        element.addEventListener('mouseenter', onMouseEnterToMenuItem);
-      });
+  const menuOffset = offset(menuSelector);
 
-      document.addEventListener('mousemove', handleMouseMoveDocument);
+  let upperLeft = {
+    x: menuOffset.left,
+    y: menuOffset.top - (config.tolerance || TOLERANCE),
+  };
+  let upperRight = {
+    x: menuOffset.left + outerWidth(menuSelector),
+    y: upperLeft.y,
+  };
+  let lowerLeft = {
+    x: menuOffset.left,
+    y:
+      menuOffset.top +
+      outerHeight(menuSelector) +
+      (config.tolerance || TOLERANCE),
+  };
+  let lowerRight = {
+    x: menuOffset.left + outerWidth(menuSelector),
+    y: lowerLeft.y,
+  };
+
+  let loc = mouseLocs[mouseLocs.length - 1];
+  let prevLoc = mouseLocs[0];
+
+  if (!loc) {
+    return 0;
+  }
+
+  if (!prevLoc) {
+    prevLoc = loc;
+  }
+
+  // If the previous mouse location was outside of the entire
+  // menu's bounds, immediately activate.
+  if (
+    prevLoc.x < menuOffset.left ||
+    prevLoc.x > lowerRight.x ||
+    prevLoc.y < menuOffset.top ||
+    prevLoc.y > lowerRight.y
+  ) {
+    return 0;
+  }
+
+  // If the mouse hasn't moved since the last time we checked
+  // for activation status, immediately activate.
+  if (lastDelayLoc && loc.x == lastDelayLoc.x && loc.y == lastDelayLoc.y) {
+    return 0;
+  }
+
+  function slope(a, b) {
+    return (b.y - a.y) / (b.x - a.x);
+  }
+
+  let decreasingCorner = upperRight;
+  let increasingCorner = lowerRight;
+
+  if (config.submenuDirection === 'left') {
+    decreasingCorner = lowerLeft;
+    increasingCorner = upperLeft;
+  } else if (config.submenuDirection === 'bottom') {
+    decreasingCorner = lowerRight;
+    increasingCorner = lowerLeft;
+  } else if (config.submenuDirection === 'top') {
+    decreasingCorner = upperLeft;
+    increasingCorner = upperRight;
+  }
+
+  let decreasingSlope = slope(loc, decreasingCorner);
+  let increasingSlope = slope(loc, increasingCorner);
+  let prevDecreasingSlope = slope(prevLoc, decreasingCorner);
+  let prevIncreasingSlope = slope(prevLoc, increasingCorner);
+
+  if (
+    decreasingSlope < prevDecreasingSlope &&
+    increasingSlope > prevIncreasingSlope
+  ) {
+    lastDelayLoc = loc;
+    return config.delay || DELAY;
+  }
+
+  lastDelayLoc = null;
+
+  return 0;
+}
+
+function activate(rowIdentifier, handler, config) {
+  if (eval(rowIdentifier?.evt?.target) === eval(rowActive?.evt?.target)) return;
+
+  handler(rowIdentifier);
+  rowActive = rowIdentifier;
+
+  const subMenu = document.querySelector(config.classPopup);
+  if (subMenu) subMenu.classList.add(config.classPopupActive);
+}
+
+function possiblyActivate(rowIdentifier, handler, config) {
+  const delay = getActivateDelay(config);
+
+  if (delay) {
+    timerId = setTimeout(function () {
+      possiblyActivate(rowIdentifier, handler, config);
+    }, delay);
+  } else {
+    activate(rowIdentifier, handler, config);
+  }
+}
+
+const MenuAim = (configs) => {
+  const menuSelector = document.querySelector(configs.menuSelector);
+  const menuItems = menuSelector.querySelectorAll(configs.classItem);
+
+  const onActiveItem = (it) => {
+    rowActive?.evt?.target?.classList?.remove(configs.classItemActive);
+    it?.evt?.target?.classList?.add(configs.classItemActive);
+  };
+
+  const handleMouseEnterRow = function (rowIdentifier, handler) {
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
     }
-  } catch (error) {}
+
+    possiblyActivate(rowIdentifier, handler, configs);
+  };
+
+  const clearTime = () => {
+    if (timerId) {
+      clearTimeout(timerId);
+    }
+    timerId = null;
+  };
+
+  const handleOnMouseLeave = () => {
+    const subMenu = document.querySelector(configs.classPopup);
+    const itemActive = document.querySelector(`.${configs.classItemActive}`);
+    subMenu && subMenu.classList.remove(configs.classPopupActive);
+    itemActive && itemActive.classList.remove(configs.classItemActive);
+    lastDelayLoc = undefined;
+    rowActive - null;
+
+    clearTime();
+  };
+
+  menuItems.forEach((element) => {
+    on(element, 'mouseenter', (evt) =>
+      handleMouseEnterRow({ item: element, evt }, onActiveItem)
+    );
+  });
+
+  on(document, 'mousemove', handleMouseMoveDocument);
+
+  on(menuSelector, 'mouseleave', handleOnMouseLeave);
 };
 
 export default MenuAim;
