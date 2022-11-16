@@ -7,6 +7,7 @@ module.exports = {
   },
   entry: './src/main.js',
   output: {
+    globalObject: 'this',
     library: 'MenuAim',
     libraryTarget: 'umd',
     libraryExport: 'default',
