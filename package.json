@@ -1,6 +1,6 @@
 {
   "name": "mega-menu-aim",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,7 +8,7 @@
     "dev": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production"
   },
-  "keywords": [],
+  "keywords": ["menu mega", "menu aim"],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -25,5 +25,13 @@
     ">0.2%",
     "not dead",
     "not op_mini all"
-  ]
+  ],
+  "homepage": "https://github.com/hunghg255/menu-mega-aim",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hunghg255/menu-mega-aim"
+  },
+  "bugs": {
+    "url": "https://github.com/hunghg255/menu-mega-aim/issues"
+  }
 }
