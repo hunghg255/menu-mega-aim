@@ -1,7 +1,7 @@
 # Menu dropdown aim
 
-[![npm version](https://badge.fury.io/js/mega-menu-aim.svg)](https://badge.fury.io/js/mega-menu-aim) [![npm](https://img.shields.io/npm/dw/mega-menu-aim.svg?logo=npm)](https://www.npmjs.com/package/mega-menu-aim) [![npm](https://img.shields.io/bundlephobia/minzip/mega-menu-aim)](https://www.npmjs.com/package/mega-menu-aim)
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![npm version](https://badge.fury.io/js/mega-menu-aim.svg)](https://badge.fury.io/js/mega-menu-aim) [![npm](https://img.shields.io/npm/dt/mega-menu-aim.svg?logo=npm)](https://www.npmjs.com/package/mega-menu-aim) [![npm](https://img.shields.io/bundlephobia/minzip/mega-menu-aim)](https://www.npmjs.com/package/mega-menu-aim)
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg)](#contributors-)
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
